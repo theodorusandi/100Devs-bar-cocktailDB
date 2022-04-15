@@ -1,35 +1,46 @@
 import getRandomInt from "./util.js";
 
 const list = document.querySelector(".list");
+const slideContainer = document.querySelector(".slide-container");
 
+// for timeout
 let bar = null;
+
+const makeActive = (btn) => {  
+  const buttons = document.querySelectorAll(".button");
+  buttons.forEach((button) => {
+    button.classList.remove("active");
+  });
+
+  btn.classList.add("active");
+};
 
 const openBar = async () => {
   const todaysIngredients = await getIngredients();
-  todaysIngredients.forEach(ingredient => {
+
+  todaysIngredients.forEach((ingredient) => {
     const li = document.createElement("li");
     const button = document.createElement("button");
+
     button.innerText = ingredient.strIngredient1;
+
+    button.classList.add("button");
     button.addEventListener("click", () => {
-      if (bar !== null) {
-        closeBar();
-      } 
-      
-      initCarousel(ingredient.strIngredient1);  
-      
+      initCarousel(ingredient.strIngredient1);
+      makeActive(button);
     });
+
     li.appendChild(button);
     list.appendChild(li);
-  })
+  });
 };
 
 const closeBar = () => {
   clearInterval(bar);
   bar = null;
-  const slideContainer = document.querySelector(".slide-container");
   slideContainer.innerHTML = "";
   slideContainer.style.transform = "translateX(0)";
-}
+};
 
 const getIngredients = async () => {
   const ingredients = await fetch(
@@ -45,36 +56,44 @@ const getIngredients = async () => {
       console.error(err);
     });
 
-    // get 5 random ingredients
-    const startIdx = getRandomInt(0, 94);
-    const numOfIngredients = Math.min(5, ingredients.length);
-    const todaysIngredients = ingredients.slice(startIdx, startIdx + numOfIngredients);
+  // get 5 random ingredients
+  const startIdx = getRandomInt(0, 94);
+  const numOfIngredients = Math.min(5, ingredients.length);
+  const todaysIngredients = ingredients.slice(
+    startIdx,
+    startIdx + numOfIngredients
+  );
 
-    return todaysIngredients;
+  return todaysIngredients;
 };
 
 const getDrinks = async (ingredient) => {
-  const drinks = await fetch(`https://www.thecocktaildb.com/api/json/v1/1/filter.php?i=${ingredient}`)
-    .then(res => {
+  const drinks = await fetch(
+    `https://www.thecocktaildb.com/api/json/v1/1/filter.php?i=${ingredient}`
+  )
+    .then((res) => {
       return res.json();
     })
-    .then(data => {
+    .then((data) => {
       return data.drinks;
     })
-    .catch(err => {
-      console.error(err)
-    })
+    .catch((err) => {
+      console.error(err);
+    });
 
-    const todaysDrinks = drinks.slice(0, drinks.length);
+  const todaysDrinks = drinks.slice(0, drinks.length);
 
-    return todaysDrinks;
-}
+  return todaysDrinks;
+};
 
-const initCarousel = async (ingredient) => {  
-  const slideContainer = document.querySelector(".slide-container");
+const initCarousel = async (ingredient) => {
+  if (bar !== null) {
+    closeBar();
+  }
+
   const todaysDrinks = await getDrinks(ingredient);
 
-  todaysDrinks.forEach(drink => {
+  todaysDrinks.forEach((drink) => {
     const slideDiv = document.createElement("div");
     const slideImg = document.createElement("img");
     const slideText = document.createElement("h3");
@@ -85,7 +104,7 @@ const initCarousel = async (ingredient) => {
     slideDiv.appendChild(slideImg);
     slideDiv.appendChild(slideText);
     slideContainer.appendChild(slideDiv);
-  })
+  });
 
   const slides = slideContainer.children;
 
@@ -110,7 +129,6 @@ const initCarousel = async (ingredient) => {
   bar = setInterval(() => {
     startSlide();
   }, 3000);
-
 };
 
 openBar();
